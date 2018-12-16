@@ -13,3 +13,7 @@ The project aims to create a platform for managing exams, teachers can public ex
 - Morgese Luca	Mat. 187837	   Git User: **[luca-morgese97](https://github.com/luca-morgese97)**
 - Giuliano Andronic Mat. 184566 Git User: **[G1nus](https://github.com/g1nus)**
 - Liu Wenjie Mat. 185917 Git User: **[hexie2108](https://github.com/hexie2108)**
+
+
+ARIARY EDIT LINK https://app.apiary.io/henohenoapi1/editor
+VIEW LINK https://henohenoapi1.docs.apiary.io/#
