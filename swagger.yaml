@@ -1,0 +1,1284 @@
+swagger: '2.0'
+info:
+  version: 0.0.1
+  title: Henohenoapi
+  description: >-
+    The project aims to create a platform for managing exams, their submissions and the reviews related to the submissions
+host: henoheno-app.herokuapp.com
+basePath: /
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+tags:
+  - name: Users_resource
+    description: >-
+      An user can access the services offered by the platform, such as managing
+      tasks, groups, exams, submissions and peer reviews
+  - name: Tasks_resource
+    description: >-
+      Tasks have an owner(the user who created it) and the contain the
+      information necessary for other users to complete them
+  - name: Groups_resource
+    description: >-
+      Groups have an owner(the user who created it) and the contain an array of
+      exixsting users
+  - name: Exams_resource
+    description: >-
+      Exams have an owner(the user who created it) and are assigned to a group
+      of users. Each exam has a set of tasks
+  - name: Exam_submissions_resource
+    description: >-
+      Submissions have a submitter(the user who created it) and they're linked
+      to an exam. Each one contains an array of answers which correspond to the
+      tasks of the referred exam
+  - name: Exam_peer_reviews_resource
+    description: >-
+      Reviews have a reviewer(the user who created it) and they're liked to a
+      submission. Given a group partecipating in an exam, to each submission
+      will be automatically assigned a reviewer(different from the submitter)
+securityDefinitions:
+  Api_key:
+    type: apiKey
+    in: query
+    name: token
+security:
+  - Api_key: []
+paths:
+  /auth:
+    post:
+      summary: user authentication
+      description: allows and user to authenticate with his email and password
+      tags:
+        - Users_resource
+      parameters:
+        - $ref: '#/parameters/User_email_password_in_body'
+      security:
+        - {}
+      responses:
+        '201':
+          description: OK
+          schema:
+            type: string
+            description: a valid token
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+        '403':
+          $ref: '#/responses/403_forbidden'
+  /users:
+    get:
+      summary: users list
+      description: gets the list of all users registered on the platform (without password)
+      tags:
+        - Users_resource
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Users_in_response'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    post:
+      summary: user registration
+      description: creates a new user based on the data posted
+      tags:
+        - Users_resource
+      security:
+        - {}
+      parameters:
+        - $ref: '#/parameters/User_in_post'
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/User'
+        '400':
+          $ref: '#/responses/400_bad_request'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    put:
+      summary: user details update
+      description: updates the information about an user(identified by his token)
+      tags:
+        - Users_resource
+      parameters:
+        - $ref: '#/parameters/User_in_put'
+      responses:
+        '200':
+          $ref: '#/responses/200_ok_only'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '409':
+          $ref: '#/responses/409_conflict'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  '/users/{user_id}':
+    get:
+      summary: access one specific user
+      description: displays the data of an user given its id
+      tags:
+        - Users_resource
+      parameters:
+        - $ref: '#/parameters/User_id_in_path'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/User_in_response'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  '/users/{user_id}/exams':
+    get:
+      summary: get the exams of a student
+      description: displays the exams created by an user or assigned to him
+      tags:
+        - Users_resource
+      parameters:
+        - $ref: '#/parameters/User_id_in_path'
+        - $ref: '#/parameters/Selection_users_exams'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Exams'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  /logout:
+    post:
+      summary: user logout
+      description: deletes the token of the active user requesting this service
+      tags:
+        - Users_resource
+      responses:
+        '204':
+          $ref: '#/responses/204_no_content'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  /tasks:
+    get:
+      summary: tasks list
+      description: displays list of all tasks
+      tags:
+        - Tasks_resource
+      parameters:
+        - $ref: '#/parameters/Selection_tasks'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Tasks'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '400':
+          $ref: '#/responses/400_bad_request'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    post:
+      summary: create new task
+      description: creates new task based on the posted data("options" can be empty if the task is an open-ended question - in this case the array of solutions can contain one single element which an example of a correct answer to the question)
+      tags:
+        - Tasks_resource
+      parameters:
+        - $ref: '#/parameters/Task_in_post'
+      responses:
+        '201':
+          description: created
+          schema:
+            $ref: '#/definitions/Task'
+        '204':
+          $ref: '#/responses/204_no_content'
+        '400':
+          $ref: '#/responses/400_bad_request'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  '/tasks/{task_id}':
+    get:
+      summary: access a specific task
+      description: >-
+        displays the informations of a task given its id(it won\'t contain the
+        solution if you\'re not the owner)
+      tags:
+        - Tasks_resource
+      parameters:
+        - $ref: '#/parameters/Task_id_in_path'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Task'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    put:
+      summary: update an existing task
+      description: updates an existing task(can be done only by the owner of the task)
+      tags:
+        - Tasks_resource
+      parameters:
+        - $ref: '#/parameters/Task_id_in_path'
+        - $ref: '#/parameters/Task_in_put'
+      responses:
+        '200':
+          $ref: '#/responses/200_ok_only'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '409':
+          $ref: '#/responses/409_conflict'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    delete:
+      summary: delete an existing task
+      description: deletes an existing task
+      tags:
+        - Tasks_resource
+      parameters:
+        - $ref: '#/parameters/Task_id_in_path'
+      responses:
+        '204':
+          $ref: '#/responses/204_no_content'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  /groups:
+    get:
+      summary: groups list
+      description: gets the list of all groups
+      tags:
+        - Groups_resource
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Groups'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    post:
+      summary: create new group
+      description: creates a new group made-up by the members indentified by their id in the payload
+      tags:
+        - Groups_resource
+      parameters:
+        - $ref: '#/parameters/Group_in_post'
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/Group'
+        '204':
+          $ref: '#/responses/204_no_content'
+        '400':
+          $ref: '#/responses/400_bad_request'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  '/groups/{group_id}':
+    get:
+      summary: get a specific group
+      description: access the details of the group specified by the id
+      tags:
+        - Groups_resource
+      parameters:
+        - $ref: '#/parameters/Group_id_in_path'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Group'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    put:
+      summary: update an existing group
+      description: update an existing group
+      tags:
+        - Groups_resource
+      parameters:
+        - $ref: '#/parameters/Group_id_in_path'
+        - $ref: '#/parameters/Group_in_put'
+      responses:
+        '200':
+          $ref: '#/responses/200_ok_only'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '409':
+          $ref: '#/responses/409_conflict'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    delete:
+      summary: delete an existing group
+      description: delete an existing group
+      tags:
+        - Groups_resource
+      parameters:
+        - $ref: '#/parameters/Group_id_in_path'
+      responses:
+        '204':
+          $ref: '#/responses/204_no_content'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '405':
+          $ref: '#/responses/405_method_not_allowed'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  /exams:
+    get:
+      summary: exams list
+      description: >-
+        displays the exams created by or assigned to the user requesting the
+        service
+      tags:
+        - Exams_resource
+      parameters:
+        - $ref: '#/parameters/Selection_exams'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Exams'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    post:
+      summary: create an exam
+      description: >-
+        creates an exam given the posted informations(tasks and a group should
+        already exist)
+      tags:
+        - Exams_resource
+      parameters:
+        - $ref: '#/parameters/Exam_in_post'
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/Exam'
+        '204':
+          $ref: '#/responses/204_no_content'
+        '400':
+          $ref: '#/responses/400_bad_request'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  '/exams/{id}':
+    get:
+      summary: access a specific exam
+      description: >-
+        displays all the informations of an exam object(tasks won't contain the
+        solutions)
+      tags:
+        - Exams_resource
+      parameters:
+        - $ref: '#/parameters/Exam_id_in_path'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Exam'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    put:
+      summary: update an existing exam
+      description: update an exam by modifying specific fields
+      tags:
+        - Exams_resource
+      parameters:
+        - $ref: '#/parameters/Exam_id_in_path'
+        - $ref: '#/parameters/Exam_in_put'
+      responses:
+        '200':
+          $ref: '#/responses/200_ok_only'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '409':
+          $ref: '#/responses/409_conflict'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  '/exams/{id}/exam_submissions':
+    get:
+      summary: get the submissions of an exam
+      description: displays the exam submission list of a given exam
+      tags:
+        - Exams_resource
+      parameters:
+        - $ref: '#/parameters/Exam_id_in_path'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Exam_submissions'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  /exam_submissions:
+    get:
+      summary: Exam submission list
+      description: displays the list of the submissions based on the given criterion
+      tags:
+        - Exam_submissions_resource
+      parameters:
+        - $ref: '#/parameters/Selection_exam_submissions'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Exam_submissions'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    post:
+      summary: Create a new submission
+      description: creates new submission based on the posted data
+      tags:
+        - Exam_submissions_resource
+      parameters:
+        - $ref: '#/parameters/Exam_submission_in_post'
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/Exam_submission'
+        '204':
+          $ref: '#/responses/204_no_content'
+        '400':
+          $ref: '#/responses/400_bad_request'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  '/exam_submissions/{exam_submission_id}':
+    get:
+      summary: access a specific submission
+      description: displays the data of a specific submission
+      tags:
+        - Exam_submissions_resource
+      parameters:
+        - $ref: '#/parameters/Exam_submission_id_in_path'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Exam_submission'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    put:
+      summary: update an existing solution's answers
+      description: >-
+        As a submitter you might update your submission
+      tags:
+        - Exam_submissions_resource
+      parameters:
+        - $ref: '#/parameters/Exam_submission_id_in_path'
+        - $ref: '#/parameters/Exam_submission_in_put'
+      responses:
+        '200':
+          $ref: '#/responses/200_ok_only'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '409':
+          $ref: '#/responses/409_conflict'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    patch:
+      summary: assign evaluation
+      description: >-
+        As the owner of the exam you might want to assign an evaluation to a submission
+      tags:
+        - Exam_submissions_resource
+      parameters:
+        - $ref: '#/parameters/Exam_submission_id_in_path'
+        - $ref: '#/parameters/Exam_submission_in_patch'
+      responses:
+        '200':
+          $ref: '#/responses/200_ok_only'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '409':
+          $ref: '#/responses/409_conflict'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  '/exam_submissions/{exam_submission_id}/exam_peer_reviews':
+    get:
+      summary: access the reviews of a solution
+      description: get all reviews of a specific submission
+      tags:
+        - Exam_submissions_resource
+      parameters:
+        - $ref: '#/parameters/Exam_submission_id_in_path'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Exam_peer_review_for_given_submission'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  /exam_peer_reviews:
+    get:
+      summary: reviews list
+      description: As a student you can get the list of all your reviews(created or received)
+      tags:
+        - Exam_peer_reviews_resource
+      parameters:
+        - $ref: '#/parameters/Selection_reviews'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Exam_peer_reviews'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    post:
+      summary: submit a review
+      description: submit a review for a given submission(indentified by its id)
+      tags:
+        - Exam_peer_reviews_resource
+      parameters:
+        - $ref: '#/parameters/Exam_peer_review_in_post'
+      responses:
+        '201':
+          description: Created
+          schema:
+            type: integer
+            description: the new exam peer review's id
+        '204':
+          $ref: '#/responses/204_no_content'
+        '400':
+          $ref: '#/responses/400_bad_request'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+  '/exam_peer_reviews/{exam_peer_review_id}':
+    get:
+      summary: read a specific review
+      description: read a specific review
+      tags:
+        - Exam_peer_reviews_resource
+      parameters:
+        - $ref: '#/parameters/Exam_peer_review_id_in_path'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Exam_peer_review'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    put:
+      summary: update a review
+      description: update a review
+      tags:
+        - Exam_peer_reviews_resource
+      parameters:
+        - $ref: '#/parameters/Exam_peer_review_id_in_path'
+        - $ref: '#/parameters/Exam_peer_review_in_put'
+      responses:
+        '200':
+          $ref: '#/responses/200_ok_only'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '409':
+          $ref: '#/responses/409_conflict'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+    delete:
+      summary: delete an existing review
+      description: delete an existing review
+      tags:
+        - Exam_peer_reviews_resource
+      parameters:
+        - $ref: '#/parameters/Exam_peer_review_id_in_path'
+      responses:
+        '204':
+          $ref: '#/responses/204_no_content'
+        '401':
+          $ref: '#/responses/401_unauthorized'
+        '404':
+          $ref: '#/responses/404_not_found'
+        '405':
+          $ref: '#/responses/405_method_not_allowed'
+        '500':
+          $ref: '#/responses/500_internal_server_error'
+#definitions of different objects
+definitions:
+  Error:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+  User:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: the user's id
+      email:
+        type: string
+        description: the user's email
+      password:
+        type: string
+        format: password
+        description: the user's password
+      name:
+        type: string
+        description: the user's name
+      surname:
+        type: string
+        description: the user's surname
+  Users:
+    type: array
+    items:
+      $ref: '#/definitions/User'
+  User_in_object:
+    type: object
+    properties:
+      id:
+        type: integer
+      email:
+        type: string
+  Exam:
+    type: object
+    properties:
+      id:
+        type: integer
+      owner:
+        $ref: '#/definitions/User_in_object'
+      title:
+        type: string
+      description:
+        type: string
+      taskset:
+        type: array
+        items:
+          $ref: '#/definitions/Task_in_exam'
+      group:
+        $ref: '#/definitions/Group'
+      final_deadline:
+        type: string
+        format: date
+        description: date format "yyyy-mm-dd"
+      review_deadline:
+        type: string
+        format: date
+        description: 'date format "yyyy-mm-dd", review must be at least a day later'
+  Exams:
+    type: array
+    items:
+      $ref: '#/definitions/Exam'
+  Task:
+    type: object
+    properties:
+      id:
+        type: integer
+      owner:
+        $ref: '#/definitions/User_in_object'
+      task_type:
+        type: string
+      subject:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      options:
+        type: array
+        items:
+          type: string
+      solutions:
+        type: array
+        items:
+          type: string
+  Tasks:
+    type: array
+    items:
+      $ref: '#/definitions/Task'
+  Task_in_exam:
+    type: object
+    properties:
+      id:
+        type: integer
+      description:
+        type: string
+  Group:
+    type: object
+    properties:
+      id:
+        type: integer
+      owner:
+        $ref: '#/definitions/User_in_object'
+      name:
+        type: string
+      description:
+        type: string
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/User_in_object'
+  Groups:
+    type: array
+    items:
+      $ref: '#/definitions/Group'
+  Exam_submission:
+    type: object
+    properties:
+      id:
+        type: integer
+      ref_exam:
+        $ref: '#/definitions/Exam'
+      submitter:
+        $ref: '#/definitions/User_in_object'
+      answers:
+        type: array
+        items:
+          type: string
+      status:
+        type: string
+      evaluation:
+        type: string
+  Exam_submissions:
+    type: array
+    items:
+      $ref: '#/definitions/Exam_submission'
+  Exam_peer_review:
+    type: object
+    properties:
+      id:
+        type: integer
+      reviewer:
+        $ref: '#/definitions/User_in_object'
+      submission:
+        $ref: '#/definitions/Exam_submission'
+      review:
+        type: string
+  Exam_peer_reviews:
+    type: array
+    items:
+      $ref: '#/definitions/Exam_peer_review'
+  Exam_peer_review_for_given_submission:
+    type: object
+    properties:
+      id:
+        type: integer
+      reviewer:
+        $ref: '#/definitions/User_in_object'
+      review:
+        type: string
+  User_in_response:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: the user's id
+      email:
+        type: string
+        description: the user's email
+      name:
+        type: string
+        description: the user's name
+      surname:
+        type: string
+        description: the user's surname
+  Users_in_response:
+    type: array
+    items:
+      $ref: '#/definitions/User_in_response'
+  User_for_post:
+    type: object
+    properties:
+      email:
+        type: string
+        description: the user's email
+      password:
+        type: string
+        format: password
+        description: the user's password
+      name:
+        type: string
+        description: the user's name
+      surname:
+        type: string
+        description: the user's surname
+  Exam_for_post:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      tasks_ids:
+        type: array
+        description: 'array format "1,2,3,4,5"'
+        items:
+          type: integer
+      group_id:
+        type: integer
+      final_deadline:
+        type: string
+        format: date
+        description: date format "yyyy-mm-dd"
+      review_deadline:
+        type: string
+        format: date
+        description: 'date format "yyyy-mm-dd", review must be at least a day later'
+  Task_for_post:
+    type: object
+    properties:
+      task_type:
+        type: string
+      subject:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      options:
+        type: array
+        description: 'arrat format "aaa,bbb,ccc," deve avere almeno 2 elementi'
+        items:
+          type: string
+      solutions:
+        type: array
+        items:
+          type: string
+  Exam_submission_for_post:
+    type: object
+    properties:
+      ref_exam:
+        description: the id of the exam
+        type: integer
+      answers:
+        type: array
+        items:
+          type: string
+      status:
+        type: string
+  Exam_submission_for_put:
+    type: object
+    properties:
+      answers:
+        type: array
+        items:
+          type: string
+      status:
+        type: string
+  Exam_submission_for_patch:
+    type: object
+    properties:
+      evaluation:
+        type: string
+  Exam_peer_review_for_post:
+    type: object
+    properties:
+      ref_submission:
+        type: integer
+      review:
+        type: string
+  Group_for_post:
+    type: object
+    properties:
+      name:
+        type: string
+      description:
+        type: string
+      members_id:
+        type: array
+        items:
+          type: integer
+  Exam_peer_review_for_put:
+    type: object
+    properties:
+      review:
+        type: string
+  Exam_assessment:
+    type: object
+    properties:
+      exam_assessment_id:
+        type: integer
+      assigner:
+        $ref: '#/definitions/User'
+      assignee:
+        $ref: '#/definitions/User'
+      referred_exam:
+        $ref: '#/definitions/Exam'
+      submitted_exam:
+        $ref: '#/definitions/Exam_submission'
+      assessment:
+        type: string
+  Exam_assessments:
+    type: array
+    items:
+      $ref: '#/definitions/Exam_assessment'
+#parameters used in the API communication
+parameters:
+  Selection_exam_submissions:
+    in: query
+    name: select
+    description: select a particular type of submissions
+    required: true
+    type: string
+    enum:
+      - submitted
+      - owned
+      - toreview
+      - reviewed
+  Selection_users_exams:
+    in: query
+    name: select
+    description: select a particular type of exams
+    required: true
+    type: string
+    enum:
+      - created
+      - assigned
+  Selection_exams:
+    in: query
+    name: select
+    description: select a particular type of exams
+    required: true
+    type: string
+    enum:
+      - created
+      - assigned
+  Selection_tasks:
+    in: query
+    name: select
+    description: select a particular type of tasks
+    required: true
+    type: string
+    enum:
+      - created
+      - all
+  Selection_reviews:
+    in: query
+    name: select
+    description: select a particular type of reviews
+    required: true
+    type: string
+    enum:
+      - created
+      - received
+  User_in_post:
+    name: user
+    description: the object user
+    in: body
+    schema:
+      $ref: '#/definitions/User_for_post'
+      required:
+        - email
+        - password
+        - name
+        - surname
+  User_in_put:
+    name: user
+    description: the object user
+    in: body
+    schema:
+      $ref: '#/definitions/User_for_post'
+      required:
+        - email
+        - password
+        - name
+        - surname
+  User_email_password_in_body:
+    name: email_and_password
+    description: the user s' email and password
+    in: body
+    schema:
+      type: object
+      properties:
+        email:
+          type: string
+          description: the user's email
+        password:
+          type: string
+          format: password
+          description: the user's password
+      required:
+        - email
+        - password
+  User_id_in_path:
+    name: user_id
+    description: the user's id
+    in: path
+    type: integer
+    required: true
+  Exam_in_post:
+    name: exam
+    description: the object exam
+    in: body
+    schema:
+      $ref: '#/definitions/Exam_for_post'
+      required:
+        - title
+        - description
+        - tasks_ids
+        - group_id
+        - final_deadline
+        - review_deadline
+  Exam_in_put:
+    name: exam
+    description: the object exam
+    in: body
+    schema:
+      $ref: '#/definitions/Exam_for_post'
+      required:
+        - title
+        - description
+        - tasks_ids
+        - group_id
+        - final_deadline
+        - review_deadline
+  Exam_id_in_path:
+    name: id
+    description: id esame
+    in: path
+    type: integer
+    required: true
+  Task_in_post:
+    name: task
+    description: the object task
+    in: body
+    schema:
+      $ref: '#/definitions/Task_for_post'
+      required:
+        - task_type
+        - subject
+        - title
+        - description
+        - options
+        - solutions
+  Task_in_put:
+    name: task
+    description: the object task
+    in: body
+    schema:
+      $ref: '#/definitions/Task_for_post'
+      required:
+        - task_type
+        - subject
+        - title
+        - description
+        - options
+        - solutions
+  Task_id_in_path:
+    name: task_id
+    description: id task
+    in: path
+    type: integer
+    required: true
+  Group_in_post:
+    name: group
+    description: the object group
+    in: body
+    schema:
+      $ref: '#/definitions/Group_for_post'
+      required:
+        - name
+        - description
+        - members_id
+  Group_in_put:
+    name: group
+    description: the object group
+    in: body
+    schema:
+      $ref: '#/definitions/Group_for_post'
+      required:
+        - name
+        - description
+        - members_id
+  Group_id_in_path:
+    name: group_id
+    description: the id of a group
+    in: path
+    type: integer
+    required: true
+  Exam_submission_in_post:
+    name: exam_submission
+    description: the object exam_submission
+    in: body
+    schema:
+      $ref: '#/definitions/Exam_submission_for_post'
+      required:
+        - ref_exam
+        - answers
+  Exam_submission_in_put:
+    name: exam_submission
+    description: the object exam_submission
+    in: body
+    schema:
+      $ref: '#/definitions/Exam_submission_for_put'
+      required:
+        - answers
+        - status
+  Exam_submission_in_patch:
+    name: exam_submission
+    description: the object exam_submission
+    in: body
+    schema:
+      $ref: '#/definitions/Exam_submission_for_patch'
+      required:
+        - evaluation
+  Exam_submission_id_in_path:
+    name: exam_submission_id
+    description: exam submission id
+    in: path
+    type: integer
+    required: true
+  Exam_peer_review_in_post:
+    name: exam_peer_review
+    description: the object exam peer review
+    in: body
+    schema:
+      $ref: '#/definitions/Exam_peer_review_for_post'
+      required:
+        - ref_submission
+        - review
+  Exam_peer_review_in_put:
+    name: exam_peer_review
+    description: the object exam peer review
+    in: body
+    schema:
+      $ref: '#/definitions/Exam_peer_review_for_put'
+      required:
+        - review
+  Exam_peer_review_id_in_path:
+    name: exam_peer_review_id
+    description: exam peer review id
+    in: path
+    type: integer
+    required: true
+  Exam_assessment_post:
+    name: exam_assessment
+    description: the object exam_assessment
+    in: body
+    schema:
+      $ref: '#/definitions/Exam_assessment'
+      required:
+        - assigner
+        - assignee
+        - referred_exam
+        - submitted_exam
+        - assessment
+  Exam_assessment_put:
+    name: exam_assessment
+    description: the object exam_assessment
+    in: body
+    schema:
+      $ref: '#/definitions/Exam_assessment'
+      required:
+        - exam_assessment_id
+  Exam_assessment_id_in_path:
+    name: exam_assessment_id
+    description: exam assessment id
+    in: path
+    type: integer
+    required: true
+#default responses
+responses:
+  Unknown_error:
+    description: unhandled error
+    schema:
+      $ref: '#/definitions/Error'
+  200_ok_only:
+    description: OK
+  201_created:
+    description: Created
+  204_no_content:
+    description: No Content
+  400_bad_request:
+    description: Bad Request
+    schema:
+      $ref: '#/definitions/Error'
+  401_unauthorized:
+    description: 'Unauthorized, missing or invalid API Key'
+    schema:
+      $ref: '#/definitions/Error'
+  403_forbidden:
+    description: Forbidden
+    schema:
+      $ref: '#/definitions/Error'
+  404_not_found:
+    description: Not Found
+    schema:
+      $ref: '#/definitions/Error'
+  405_method_not_allowed:
+    description: Method Not Allowed
+    schema:
+      $ref: '#/definitions/Error'
+  409_conflict:
+    description: Conflict
+    schema:
+      $ref: '#/definitions/Error'
+  500_internal_server_error:
+    description: Internal Server Error
+    schema:
+      $ref: '#/definitions/Error'

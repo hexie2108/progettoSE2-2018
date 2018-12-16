@@ -1,0 +1,18 @@
+{
+    "type": "object",
+    "properties": {
+        "ref_exam": { 
+            "type": "number" 
+        },
+        "answers": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "status": {
+            "type": "string"
+        }
+    },
+    "required": ["ref_exam", "answers"]
+}

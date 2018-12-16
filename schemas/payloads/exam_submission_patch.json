@@ -1,0 +1,18 @@
+{
+    "type": "object",
+    "properties": {
+        "answers": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "status": {
+            "type": "string"
+        },
+        "evaluation": {
+            "type": "string"
+        }
+    },
+    "required" : ["evaluation"]
+}

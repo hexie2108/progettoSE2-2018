@@ -1,0 +1,9 @@
+{
+    "type": "object",
+    "properties": {
+        "review": {
+            "type": "string"
+        }
+    },
+    "required": ["review"]
+}

@@ -1,0 +1,55 @@
+@keyframes movee{
+    0%{
+        transform: translateY(0px);
+    }
+    25%{
+        transform: translateY(0px);
+    }
+    30%{
+        transform: translateY(-3px);
+    }
+    35%{
+        transform: translateY(0px);
+    }
+    40%{
+        transform: translateY(-3px);
+    }
+    45%{
+        transform: translateY(0px);
+    }
+    50%{
+        transform: translateY(0px);
+    }
+    80%{
+        transform: translateY(0px);
+    }
+    85%{
+        transform: translateY(-3px);
+    }
+    90%{
+        transform: translateY(-3px);
+    }
+    95%{
+        transform: translateY(-3px);
+    }
+    100%{
+        transform: translateY(0px);
+    }
+}
+body{
+    background-color: aliceblue;
+}
+div.centered{
+    position: relative;
+    width: 100%;
+    height: 600px;
+}
+svg{
+    position: relative;
+    height: 100%;
+    transform: translateX(-50%);
+    left: 50%;
+}
+svg path.eb{
+    animation: movee 6s infinite ease-out;
+}

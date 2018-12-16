@@ -1,0 +1,12 @@
+{
+    "type": "object",
+    "properties": {
+        "ref_submission": { 
+            "type": "number" 
+        },
+        "review": {
+            "type": "string"
+        }
+    },
+    "required": ["ref_submission", "review"]
+}

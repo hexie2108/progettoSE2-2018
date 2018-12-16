@@ -1,0 +1,10 @@
+{   
+    "error400":
+        {"status": 400, "body": {"code": 400,"message": "Bad Request"}},
+    "error401":
+        {"status": 401, "body": {"code": 401, "message": "Unauthorized, missing or invalid API Key"}},
+    "error403":
+        {"status": 403, "body": {"code": 403, "message": "Forbidden"}},
+    "error404":
+        {"status": 404, "body": {"code": 404, "message": "Not Found"}}
+}

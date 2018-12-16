@@ -1,0 +1,44 @@
+{
+  "name": "se2_prj_henohenomoheji",
+  "version": "0.0.1",
+  "description": "Project SE2 2018/19",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "jest",
+    "devstart": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheUnknow23/SE2_prj_henohenomoheji.git"
+  },
+  "keywords": [
+    "api"
+  ],
+  "author": "henohenomoheji team",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheUnknow23/SE2_prj_henohenomoheji/issues"
+  },
+  "homepage": "https://github.com/TheUnknow23/SE2_prj_henohenomoheji#readme",
+  "dependencies": {
+    "ajv": "^6.5.5",
+    "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "jest": "^23.6.0",
+    "node-fetch": "^2.3.0"
+  },
+	"engines": {
+		"node": "11.3.0",
+		"npm": "6.4.1"
+  },
+  "jest": {
+    "verbose": true,
+    "collectCoverage": true,
+    "testEnvironment": "node"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.6"
+  }
+}

@@ -1,0 +1,27 @@
+{
+    "type": "object",
+    "properties": {
+        "title": { 
+            "type": "string" 
+        },
+        "description": { 
+            "type": "string" 
+        },
+        "tasks_ids": {
+            "type": "array",
+            "items": {
+                "type": "number"
+            }
+        },
+        "group_id": {
+            "type": "number"
+        },
+        "final_deadline": {
+            "type": "string"
+        },
+        "review_deadline": {
+            "type": "string"
+        }
+    },
+    "required": ["title", "description", "tasks_ids", "group_id","final_deadline","review_deadline"]
+}
